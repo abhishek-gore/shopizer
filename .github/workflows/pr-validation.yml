@@ -31,7 +31,9 @@ jobs:
 
       - name: Validate Commit Messages
         run: |
-          git log --format=%B origin/main..HEAD | grep -E '^(feat|fix|docs|test|chore|refactor|perf|ci|build|revert)(\(.+\))?: .+' || {
+          BASE_REF="${{ github.base_ref }}"
+          git fetch origin "$BASE_REF"
+          git log --format=%B "origin/$BASE_REF..HEAD" | grep -E '^(feat|fix|docs|test|chore|refactor|perf|ci|build|revert)(\(.+\))?: .+' || {
             echo "❌ Commit messages must follow Conventional Commits"
             exit 1
           }
