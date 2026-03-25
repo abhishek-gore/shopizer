@@ -551,6 +551,11 @@ public class ProductCommonFacadeImpl implements ProductCommonFacade {
 			throw new ResourceNotFoundException("Reply not found");
 		}
 		
+		// Set reply to null on parent review before deleting
+		ProductReview review = replyEntity.getProductReview();
+		review.setReply(null);
+		productReviewService.update(review);
+		
 		productReviewReplyService.delete(replyEntity);
 	}
 
