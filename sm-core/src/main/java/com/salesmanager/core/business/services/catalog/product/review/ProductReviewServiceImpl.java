@@ -15,6 +15,7 @@ import com.salesmanager.core.business.services.common.generic.SalesManagerEntity
 import com.salesmanager.core.model.catalog.product.Product;
 import com.salesmanager.core.model.catalog.product.review.ProductReview;
 import com.salesmanager.core.model.customer.Customer;
+import com.salesmanager.core.model.merchant.MerchantStore;
 import com.salesmanager.core.model.reference.language.Language;
 
 @Service("productReviewService")
@@ -104,6 +105,11 @@ public class ProductReviewServiceImpl extends
 	
 	public void create(ProductReview review) throws ServiceException {
 		this.saveOrUpdate(review);
+	}
+
+	@Override
+	public List<ProductReview> getByStore(MerchantStore store) {
+		return productReviewRepository.findByProductMerchantStore(store);
 	}
 
 	/* (non-Javadoc)
