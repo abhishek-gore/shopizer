@@ -26,7 +26,10 @@ import com.salesmanager.core.model.merchant.MerchantStore;
 import com.salesmanager.core.model.reference.language.Language;
 import com.salesmanager.shop.constants.Constants;
 import com.salesmanager.shop.model.catalog.product.PersistableProductReview;
+import com.salesmanager.shop.model.catalog.product.PersistableProductReviewReply;
 import com.salesmanager.shop.model.catalog.product.ReadableProductReview;
+import com.salesmanager.shop.model.catalog.product.ReadableProductReviewList;
+import com.salesmanager.shop.model.catalog.product.ReadableProductReviewReply;
 import com.salesmanager.shop.store.controller.product.facade.ProductCommonFacade;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -235,6 +238,107 @@ public class ProductReviewApi {
       }
 
       return;
+    }
+  }
+
+  @RequestMapping(value = "/private/products/reviews", method = RequestMethod.GET)
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "store", dataType = "String", defaultValue = "DEFAULT"),
+      @ApiImplicitParam(name = "lang", dataType = "String", defaultValue = "en")
+  })
+  public ReadableProductReviewList getAllReviews(
+      @ApiIgnore MerchantStore merchantStore,
+      @ApiIgnore Language language,
+      HttpServletResponse response) {
+
+    try {
+      return productCommonFacade.getAllReviews(merchantStore, language);
+    } catch (Exception e) {
+      LOGGER.error("Error while getting all product reviews", e);
+      try {
+        response.sendError(503, "Error while getting product reviews: " + e.getMessage());
+      } catch (Exception ignore) {
+      }
+      return null;
+    }
+  }
+
+  @RequestMapping(value = "/private/products/reviews/{reviewId}/reply", method = RequestMethod.POST)
+  @ResponseStatus(HttpStatus.CREATED)
+  @ResponseBody
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "store", dataType = "String", defaultValue = "DEFAULT"),
+      @ApiImplicitParam(name = "lang", dataType = "String", defaultValue = "en")
+  })
+  public ReadableProductReviewReply createReply(
+      @PathVariable Long reviewId,
+      @Valid @RequestBody PersistableProductReviewReply reply,
+      @ApiIgnore MerchantStore merchantStore,
+      @ApiIgnore Language language,
+      HttpServletResponse response) {
+
+    try {
+      return productCommonFacade.createReviewReply(reviewId, reply, merchantStore, language);
+    } catch (Exception e) {
+      LOGGER.error("Error while creating review reply", e);
+      try {
+        response.sendError(503, "Error while creating review reply: " + e.getMessage());
+      } catch (Exception ignore) {
+      }
+      return null;
+    }
+  }
+
+  @RequestMapping(value = "/private/products/reviews/{reviewId}/reply/{replyId}", method = RequestMethod.PUT)
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "store", dataType = "String", defaultValue = "DEFAULT"),
+      @ApiImplicitParam(name = "lang", dataType = "String", defaultValue = "en")
+  })
+  public void updateReply(
+      @PathVariable Long reviewId,
+      @PathVariable Long replyId,
+      @Valid @RequestBody PersistableProductReviewReply reply,
+      @ApiIgnore MerchantStore merchantStore,
+      @ApiIgnore Language language,
+      HttpServletResponse response) {
+
+    try {
+      productCommonFacade.updateReviewReply(reviewId, replyId, reply, merchantStore, language);
+    } catch (Exception e) {
+      LOGGER.error("Error while updating review reply", e);
+      try {
+        response.sendError(503, "Error while updating review reply: " + e.getMessage());
+      } catch (Exception ignore) {
+      }
+    }
+  }
+
+  @RequestMapping(value = "/private/products/reviews/{reviewId}/reply/{replyId}", method = RequestMethod.DELETE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseBody
+  @ApiImplicitParams({
+      @ApiImplicitParam(name = "store", dataType = "String", defaultValue = "DEFAULT"),
+      @ApiImplicitParam(name = "lang", dataType = "String", defaultValue = "en")
+  })
+  public void deleteReply(
+      @PathVariable Long reviewId,
+      @PathVariable Long replyId,
+      @ApiIgnore MerchantStore merchantStore,
+      @ApiIgnore Language language,
+      HttpServletResponse response) {
+
+    try {
+      productCommonFacade.deleteReviewReply(reviewId, replyId, merchantStore, language);
+    } catch (Exception e) {
+      LOGGER.error("Error while deleting review reply", e);
+      try {
+        response.sendError(503, "Error while deleting review reply: " + e.getMessage());
+      } catch (Exception ignore) {
+      }
     }
   }
 }

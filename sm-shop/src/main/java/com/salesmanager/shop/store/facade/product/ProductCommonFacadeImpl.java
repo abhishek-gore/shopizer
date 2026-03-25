@@ -17,6 +17,7 @@ import com.salesmanager.core.business.exception.ConversionException;
 import com.salesmanager.core.business.exception.ServiceException;
 import com.salesmanager.core.business.services.catalog.pricing.PricingService;
 import com.salesmanager.core.business.services.catalog.product.ProductService;
+import com.salesmanager.core.business.services.catalog.product.review.ProductReviewReplyService;
 import com.salesmanager.core.business.services.catalog.product.review.ProductReviewService;
 import com.salesmanager.core.business.services.customer.CustomerService;
 import com.salesmanager.core.business.services.reference.language.LanguageService;
@@ -26,20 +27,26 @@ import com.salesmanager.core.model.catalog.product.availability.ProductAvailabil
 import com.salesmanager.core.model.catalog.product.manufacturer.Manufacturer;
 import com.salesmanager.core.model.catalog.product.price.ProductPrice;
 import com.salesmanager.core.model.catalog.product.review.ProductReview;
+import com.salesmanager.core.model.catalog.product.review.ProductReviewReply;
 import com.salesmanager.core.model.catalog.product.variant.ProductVariant;
 import com.salesmanager.core.model.merchant.MerchantStore;
 import com.salesmanager.core.model.reference.language.Language;
 import com.salesmanager.shop.mapper.catalog.product.PersistableProductMapper;
 import com.salesmanager.shop.model.catalog.product.LightPersistableProduct;
 import com.salesmanager.shop.model.catalog.product.PersistableProductReview;
+import com.salesmanager.shop.model.catalog.product.PersistableProductReviewReply;
 import com.salesmanager.shop.model.catalog.product.ProductPriceEntity;
 import com.salesmanager.shop.model.catalog.product.ReadableProduct;
 import com.salesmanager.shop.model.catalog.product.ReadableProductReview;
+import com.salesmanager.shop.model.catalog.product.ReadableProductReviewList;
+import com.salesmanager.shop.model.catalog.product.ReadableProductReviewReply;
 import com.salesmanager.shop.model.catalog.product.product.PersistableProduct;
 import com.salesmanager.shop.model.catalog.product.product.ProductSpecification;
 import com.salesmanager.shop.populator.catalog.PersistableProductReviewPopulator;
+import com.salesmanager.shop.populator.catalog.PersistableProductReviewReplyPopulator;
 import com.salesmanager.shop.populator.catalog.ReadableProductPopulator;
 import com.salesmanager.shop.populator.catalog.ReadableProductReviewPopulator;
+import com.salesmanager.shop.populator.catalog.ReadableProductReviewReplyPopulator;
 import com.salesmanager.shop.store.api.exception.ConversionRuntimeException;
 import com.salesmanager.shop.store.api.exception.OperationNotAllowedException;
 import com.salesmanager.shop.store.api.exception.ResourceNotFoundException;
@@ -73,6 +80,9 @@ public class ProductCommonFacadeImpl implements ProductCommonFacade {
 
 	@Inject
 	private ProductReviewService productReviewService;
+
+	@Inject
+	private ProductReviewReplyService productReviewReplyService;
 	
 	@Autowired
 	private PersistableProductMapper persistableProductMapper;
@@ -471,6 +481,77 @@ public class ProductCommonFacadeImpl implements ProductCommonFacade {
 				}
 			}
 		}
+	}
+
+	@Override
+	public ReadableProductReviewList getAllReviews(MerchantStore store, Language language) throws Exception {
+		List<ProductReview> reviews = productReviewService.getByStore(store);
+		ReadableProductReviewList reviewList = new ReadableProductReviewList();
+		
+		List<ReadableProductReview> readableReviews = reviews.stream()
+			.map(review -> {
+				try {
+					ReadableProductReviewPopulator populator = new ReadableProductReviewPopulator();
+					ReadableProductReview readable = new ReadableProductReview();
+					return populator.populate(review, readable, store, language);
+				} catch (Exception e) {
+					throw new ServiceRuntimeException("Error populating review", e);
+				}
+			})
+			.collect(Collectors.toList());
+		
+		reviewList.setReviews(readableReviews);
+		reviewList.setTotal(readableReviews.size());
+		return reviewList;
+	}
+
+	@Override
+	public ReadableProductReviewReply createReviewReply(Long reviewId, PersistableProductReviewReply reply,
+			MerchantStore store, Language language) throws Exception {
+		
+		ProductReview review = productReviewService.getById(reviewId);
+		if (review == null) {
+			throw new ResourceNotFoundException("Review not found: " + reviewId);
+		}
+		
+		if (review.getReply() != null) {
+			throw new ServiceException("Reply already exists for this review");
+		}
+		
+		PersistableProductReviewReplyPopulator populator = new PersistableProductReviewReplyPopulator();
+		ProductReviewReply replyEntity = populator.populate(reply, new ProductReviewReply(), store, language);
+		replyEntity.setProductReview(review);
+		replyEntity.setMerchantName(store.getStorename());
+		
+		productReviewReplyService.save(replyEntity);
+		
+		ReadableProductReviewReplyPopulator readablePopulator = new ReadableProductReviewReplyPopulator();
+		return readablePopulator.populate(replyEntity, new ReadableProductReviewReply(), store, language);
+	}
+
+	@Override
+	public void updateReviewReply(Long reviewId, Long replyId, PersistableProductReviewReply reply,
+			MerchantStore store, Language language) throws Exception {
+		
+		ProductReviewReply replyEntity = productReviewReplyService.getById(replyId);
+		if (replyEntity == null || !replyEntity.getProductReview().getId().equals(reviewId)) {
+			throw new ResourceNotFoundException("Reply not found");
+		}
+		
+		replyEntity.setComment(reply.getComment());
+		productReviewReplyService.update(replyEntity);
+	}
+
+	@Override
+	public void deleteReviewReply(Long reviewId, Long replyId, MerchantStore store, Language language)
+			throws Exception {
+		
+		ProductReviewReply replyEntity = productReviewReplyService.getById(replyId);
+		if (replyEntity == null || !replyEntity.getProductReview().getId().equals(reviewId)) {
+			throw new ResourceNotFoundException("Reply not found");
+		}
+		
+		productReviewReplyService.delete(replyEntity);
 	}
 
 
