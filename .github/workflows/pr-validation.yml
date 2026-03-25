@@ -1,0 +1,54 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+env:
+  JAVA_VERSION: '17'
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  validate:
+    name: PR Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Validate Commit Messages
+        run: |
+          git log --format=%B origin/main..HEAD | grep -E '^(feat|fix|docs|test|chore|refactor|perf|ci|build|revert)(\(.+\))?: .+' || {
+            echo "❌ Commit messages must follow Conventional Commits"
+            exit 1
+          }
+
+      - name: Run Tests
+        run: mvn verify
+
+      - name: Code Coverage
+        run: mvn jacoco:report
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ All PR checks passed!'
+            })

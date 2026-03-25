@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: shopizer-smoke-test
+  namespace: {{ .Values.namespace }}
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: smoke-test
+        image: curlimages/curl:latest
+        command: ["/bin/sh"]
+        args:
+          - -c
+          - |
+            set -e
+            BASE_URL="http://shopizer-backend.{{ .Values.namespace }}.svc.cluster.local:8080"
+            
+            echo "Running smoke tests..."
+            
+            curl -f $BASE_URL/actuator/health || exit 1
+            curl -f "$BASE_URL/api/v1/products?store=DEFAULT&lang=en" || exit 1
+            
+            echo "All smoke tests passed!"
