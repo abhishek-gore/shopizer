@@ -315,10 +315,19 @@ public class PaymentServiceImpl implements PaymentService {
 		//must have a shipping module configured
 		Map<String, IntegrationConfiguration> modules = this.getPaymentModulesConfigured(store);
 		if(modules==null){
-			throw new ServiceException("No payment module configured");
+			modules = new HashMap<String, IntegrationConfiguration>();
 		}
 		
 		IntegrationConfiguration configuration = modules.get(payment.getModuleName());
+		
+		// Allow MONEYORDER to work without configuration
+		if(configuration==null && "moneyorder".equalsIgnoreCase(payment.getModuleName())) {
+			configuration = new IntegrationConfiguration();
+			configuration.setModuleCode("moneyorder");
+			configuration.setActive(true);
+			configuration.setIntegrationKeys(new HashMap<String, String>());
+			configuration.getIntegrationKeys().put("transaction", TransactionType.AUTHORIZECAPTURE.name());
+		}
 		
 		if(configuration==null) {
 			throw new ServiceException("Payment module " + payment.getModuleName() + " is not configured");
