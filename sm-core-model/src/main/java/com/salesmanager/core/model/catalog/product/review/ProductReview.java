@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -66,6 +67,9 @@ public class ProductReview extends SalesManagerEntity<Long, ProductReview> imple
 	
 	@Column(name = "STATUS")
 	private Integer status;
+
+	@OneToOne(mappedBy = "productReview", cascade = CascadeType.ALL)
+	private ProductReviewReply reply;
 
 	@JsonIgnore
 	@ManyToOne
@@ -154,6 +158,14 @@ public class ProductReview extends SalesManagerEntity<Long, ProductReview> imple
 
 	public void setReviewDate(Date reviewDate) {
 		this.reviewDate = reviewDate;
+	}
+
+	public ProductReviewReply getReply() {
+		return reply;
+	}
+
+	public void setReply(ProductReviewReply reply) {
+		this.reply = reply;
 	}
 
 }
