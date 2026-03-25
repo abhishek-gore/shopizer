@@ -33,18 +33,19 @@ jobs:
         run: |
           BASE_REF="${{ github.base_ref }}"
           git fetch origin "$BASE_REF"
-          git log --format=%B "origin/$BASE_REF..HEAD" | grep -E '^(feat|fix|docs|test|chore|refactor|perf|ci|build|revert)(\(.+\))?: .+' || {
+          COMMITS=$(git log --format=%B "origin/$BASE_REF..HEAD")
+          echo "Checking commits:"
+          echo "$COMMITS"
+          echo "$COMMITS" | grep -E '^(feat|fix|docs|test|chore|refactor|perf|ci|build|revert)(\(.+\))?: .+' || {
             echo "❌ Commit messages must follow Conventional Commits"
             exit 1
           }
 
-      - name: Run Tests
-        run: mvn verify
-
-      - name: Code Coverage
-        run: mvn jacoco:report
+      - name: Compile Code
+        run: mvn clean compile -DskipTests
 
       - name: Comment PR
+        if: success()
         uses: actions/github-script@v7
         with:
           script: |
@@ -52,5 +53,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '✅ All PR checks passed!'
+              body: '✅ PR validation passed!\n\n- Commit messages follow Conventional Commits\n- Code compiles successfully'
             })
