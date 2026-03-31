@@ -9,9 +9,12 @@ import com.salesmanager.core.model.merchant.MerchantStore;
 import com.salesmanager.core.model.reference.language.Language;
 import com.salesmanager.shop.model.catalog.product.LightPersistableProduct;
 import com.salesmanager.shop.model.catalog.product.PersistableProductReview;
+import com.salesmanager.shop.model.catalog.product.PersistableProductReviewReply;
 import com.salesmanager.shop.model.catalog.product.ProductPriceEntity;
 import com.salesmanager.shop.model.catalog.product.ReadableProduct;
 import com.salesmanager.shop.model.catalog.product.ReadableProductReview;
+import com.salesmanager.shop.model.catalog.product.ReadableProductReviewList;
+import com.salesmanager.shop.model.catalog.product.ReadableProductReviewReply;
 import com.salesmanager.shop.model.catalog.product.product.PersistableProduct;
 
 public interface ProductCommonFacade {
@@ -171,6 +174,28 @@ public interface ProductCommonFacade {
 	   */
 	  List<ReadableProductReview> getProductReviews(Product product, MerchantStore store,
 	      Language language) throws Exception;
+
+	  /**
+	   * Get all reviews for merchant store
+	   */
+	  ReadableProductReviewList getAllReviews(MerchantStore store, Language language) throws Exception;
+
+	  /**
+	   * Create reply to a review
+	   */
+	  ReadableProductReviewReply createReviewReply(Long reviewId, PersistableProductReviewReply reply,
+	      MerchantStore store, Language language) throws Exception;
+
+	  /**
+	   * Update reply
+	   */
+	  void updateReviewReply(Long reviewId, Long replyId, PersistableProductReviewReply reply,
+	      MerchantStore store, Language language) throws Exception;
+
+	  /**
+	   * Delete reply
+	   */
+	  void deleteReviewReply(Long reviewId, Long replyId, MerchantStore store, Language language) throws Exception;
 
 	  /**
 	   * validates if product exists

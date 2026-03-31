@@ -6,6 +6,7 @@ import com.salesmanager.core.business.services.common.generic.SalesManagerEntity
 import com.salesmanager.core.model.catalog.product.Product;
 import com.salesmanager.core.model.catalog.product.review.ProductReview;
 import com.salesmanager.core.model.customer.Customer;
+import com.salesmanager.core.model.merchant.MerchantStore;
 import com.salesmanager.core.model.reference.language.Language;
 
 public interface ProductReviewService extends
@@ -16,6 +17,7 @@ public interface ProductReviewService extends
 	List<ProductReview> getByProduct(Product product);
 	List<ProductReview> getByProduct(Product product, Language language);
 	ProductReview getByProductAndCustomer(Long productId, Long customerId);
+	List<ProductReview> getByStore(MerchantStore store);
 	/**
 	 * @param product
 	 * @return

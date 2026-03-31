@@ -92,7 +92,13 @@ public class ProductFacadeV2Impl implements ProductFacade {
 		
 		Product product = null;
 		try {
-			product = productService.getBySku(sku, store, language);
+			// Try friendly URL first
+			java.util.Locale locale = new java.util.Locale(language.getCode());
+			product = productService.getBySeUrl(store, sku, locale);
+			// Fall back to SKU if not found
+			if (product == null) {
+				product = productService.getBySku(sku, store, language);
+			}
 		} catch (ServiceException e) {
 			throw new ServiceRuntimeException(e);
 		}

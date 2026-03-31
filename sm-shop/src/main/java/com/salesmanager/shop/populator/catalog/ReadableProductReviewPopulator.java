@@ -9,6 +9,7 @@ import com.salesmanager.core.model.catalog.product.review.ProductReviewDescripti
 import com.salesmanager.core.model.merchant.MerchantStore;
 import com.salesmanager.core.model.reference.language.Language;
 import com.salesmanager.shop.model.catalog.product.ReadableProductReview;
+import com.salesmanager.shop.model.catalog.product.ReadableProductReviewReply;
 import com.salesmanager.shop.model.customer.ReadableCustomer;
 import com.salesmanager.shop.populator.customer.ReadableCustomerPopulator;
 import com.salesmanager.shop.utils.DateUtil;
@@ -32,6 +33,7 @@ public class ReadableProductReviewPopulator extends
 			target.setCustomer(customer);
 			target.setRating(source.getReviewRating());
 			target.setProductId(source.getProduct().getId());
+			target.setProductName(source.getProduct().getDescriptions().iterator().next().getName());
 			
 			Set<ProductReviewDescription> descriptions = source.getDescriptions();
 			if(descriptions!=null) {
@@ -40,6 +42,14 @@ public class ReadableProductReviewPopulator extends
 					target.setLanguage(description.getLanguage().getCode());
 					break;
 				}
+			}
+
+			// Populate reply if exists
+			if (source.getReply() != null) {
+				ReadableProductReviewReplyPopulator replyPopulator = new ReadableProductReviewReplyPopulator();
+				ReadableProductReviewReply reply = replyPopulator.populate(source.getReply(), 
+						new ReadableProductReviewReply(), store, language);
+				target.setReply(reply);
 			}
 
 			return target;
