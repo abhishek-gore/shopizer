@@ -6,12 +6,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
+
+import com.salesmanager.shop.application.ShopApplication;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+@SpringBootTest(classes = ShopApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class SmokeTest {
 
     @Autowired
@@ -31,7 +31,7 @@ public class SmokeTest {
 
     @Test
     public void apiDocumentationShouldBeAccessible() {
-        ResponseEntity<String> response = restTemplate.getForEntity("/swagger-ui/index.html", String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity("/swagger-ui.html", String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
