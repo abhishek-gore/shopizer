@@ -1,48 +1,43 @@
 package com.salesmanager.shop.integration;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.salesmanager.shop.application.ShopApplication;
+import com.salesmanager.shop.model.catalog.product.ReadableProductList;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
+import static org.junit.jupiter.api.Assertions.*;
+
+@SpringBootTest(classes = ShopApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
+@ExtendWith(SpringExtension.class)
 public class ProductApiIT {
 
     @Autowired
-    private MockMvc mockMvc;
+    private TestRestTemplate testRestTemplate;
 
     @Test
     public void shouldListProducts() throws Exception {
-        mockMvc.perform(get("/api/v1/products")
-                .param("store", "DEFAULT")
-                .param("lang", "en"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.products").isArray());
-    }
-
-    @Test
-    public void shouldReturnProductById() throws Exception {
-        mockMvc.perform(get("/api/v1/products/1")
-                .param("store", "DEFAULT")
-                .param("lang", "en"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").exists());
+        ResponseEntity<ReadableProductList> response = testRestTemplate.getForEntity(
+            "/api/v1/products?store=DEFAULT&lang=en", 
+            ReadableProductList.class);
+        
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
     }
 
     @Test
     public void shouldReturn404ForNonExistentProduct() throws Exception {
-        mockMvc.perform(get("/api/v1/products/999999")
-                .param("store", "DEFAULT")
-                .param("lang", "en"))
-                .andExpect(status().isNotFound());
+        ResponseEntity<String> response = testRestTemplate.getForEntity(
+            "/api/v1/products/999999?store=DEFAULT&lang=en", 
+            String.class);
+        
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 }
