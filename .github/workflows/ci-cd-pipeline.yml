@@ -51,7 +51,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: shopizer-${{ steps.version.outputs.version }}.jar
-          path: sm-shop/target/*.jar
+          path: sm-shop/target/shopizer.jar
           retention-days: 30
 
   push-to-infra:
@@ -79,7 +79,7 @@ jobs:
 
       - name: Copy artifacts
         run: |
-          find artifacts -name "*.jar" -type f -exec cp {} infra/artifacts/backend/app.jar \;
+          cp artifacts/shopizer.jar infra/artifacts/backend/app.jar
 
       - name: Commit and push
         working-directory: infra
