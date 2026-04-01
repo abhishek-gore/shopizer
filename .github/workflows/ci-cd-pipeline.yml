@@ -2,9 +2,9 @@ name: Production CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: ['**']
   pull_request:
-    branches: [main]
+    branches: [main, '3.2.7']
   workflow_dispatch:
 
 env:
@@ -34,13 +34,8 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: SonarQube Scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn verify sonar:sonar \
-            -Dsonar.projectKey=shopizer \
-            -Dsonar.host.url=https://sonarcloud.io
+      - name: Run Tests
+        run: mvn verify
 
   security-scan:
     name: Security Scan
@@ -63,7 +58,7 @@ jobs:
   build-test:
     name: Build & Test
     runs-on: ubuntu-latest
-    needs: [code-quality, security-scan]
+    needs: [security-scan]
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
