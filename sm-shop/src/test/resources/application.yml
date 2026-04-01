@@ -8,12 +8,14 @@ spring:
     hibernate:
       ddl-auto: create-drop
     show-sql: false
+    defer-datasource-initialization: false
   h2:
     console:
       enabled: false
   sql:
     init:
       mode: never
+      data-locations: classpath:none.sql
 
 management:
   endpoints:
