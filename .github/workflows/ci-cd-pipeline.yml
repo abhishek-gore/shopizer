@@ -79,7 +79,7 @@ jobs:
 
       - name: Copy artifacts
         run: |
-          cp artifacts/*.jar infra/artifacts/backend/app.jar
+          find artifacts -name "*.jar" -type f -exec cp {} infra/artifacts/backend/app.jar \;
 
       - name: Commit and push
         working-directory: infra
