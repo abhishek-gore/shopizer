@@ -209,13 +209,6 @@ public class ServicesTestSupport {
 		product.setPrice(BigDecimal.TEN);
 		product.setSku(code);
 		product.setQuantity(100);
-		/**
-		ProductDescription productDescription = new ProductDescription();
-		productDescription.setDescription("TEST");
-		productDescription.setName("TestName");
-		productDescription.setLanguage("en");
-		product.getDescriptions().add(productDescription);
-		**/
 
 		final HttpEntity<PersistableProduct> entity = new HttpEntity<>(product, getHeader());
 

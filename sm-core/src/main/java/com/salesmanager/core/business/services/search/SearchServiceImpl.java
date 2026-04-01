@@ -101,7 +101,7 @@ public class SearchServiceImpl implements com.salesmanager.core.business.service
 	@Autowired(required = false)
 	private SearchModule searchModule;
 
-	@PostConstruct
+	//@PostConstruct
 	public void init() throws Exception {
 
 		/**

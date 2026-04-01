@@ -1,0 +1,71 @@
+name: Hotfix Pipeline
+
+on:
+  push:
+    branches:
+      - 'hotfix/**'
+
+env:
+  JAVA_VERSION: '17'
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: shopizer-backend
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  hotfix-deploy:
+    name: Hotfix Fast-Track
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Generate Hotfix Version
+        id: version
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          VERSION="hotfix-${BRANCH_NAME##*/}-${SHORT_SHA}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Quick Tests
+        run: mvn test -Dtest=SmokeTest
+
+      - name: Build
+        run: mvn package -DskipTests
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build & Push Image
+        run: |
+          aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+          docker build -t ${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.version.outputs.version }} .
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ steps.version.outputs.version }}
+
+      - name: Create PR to Main
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: ${{ github.ref }}
+          base: main
+          title: "🚨 Hotfix: ${{ github.ref }}"
+          body: |
+            ## Hotfix Deployment
+            
+            **Version:** ${{ steps.version.outputs.version }}
+            **Branch:** ${{ github.ref }}
+            
+            This hotfix has been fast-tracked to production.
+            Please review and merge to main.
+          labels: hotfix, priority-high
