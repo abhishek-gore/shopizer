@@ -2,7 +2,7 @@ name: Pull Request Validation
 
 on:
   pull_request:
-    branches: [main, 'feature/**']
+    branches: [main, '3.2.7', 'feature/**']
     types: [opened, synchronize, reopened]
 
 env:
