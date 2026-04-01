@@ -89,7 +89,8 @@ From the command line:
 
 2. Shopizer admin
 
-Form compiling and running Shopizer admin consult the repo README file
+Form compiling and running Shopizer 
+ consult the repo README file
 
 3. Shop sample site
 
