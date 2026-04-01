@@ -96,6 +96,42 @@ jobs:
           path: sm-shop/target/*.jar
           retention-days: 30
 
+  push-to-infra:
+    name: Push Artifacts to Infra Repo
+    runs-on: ubuntu-latest
+    needs: build-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout infra repo
+        uses: actions/checkout@v4
+        with:
+          repository: abhishek-gore/shopizer-infra
+          token: ${{ secrets.INFRA_REPO_TOKEN }}
+          path: infra
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: shopizer-${{ needs.build-test.outputs.version }}.jar
+          path: artifacts
+
+      - name: Setup Git LFS
+        run: |
+          git lfs install
+
+      - name: Copy artifacts
+        run: |
+          cp artifacts/*.jar infra/artifacts/backend/app.jar
+
+      - name: Commit and push
+        working-directory: infra
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add artifacts/backend/app.jar
+          git commit -m "Update backend artifact from ${{ needs.build-test.outputs.version }}" || echo "No changes"
+          git push
+
   build-image:
     name: Build Docker Image
     runs-on: ubuntu-latest
